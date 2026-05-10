@@ -508,8 +508,9 @@ body {
   border-top: 1px solid var(--color-rule);
 }
 
-.author-block a {
+.author-block__photo-link {
   line-height: 0;
+  flex-shrink: 0;
 }
 
 .author-block__photo {
