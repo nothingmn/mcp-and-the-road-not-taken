@@ -86,7 +86,6 @@ body {
 .toc__header {
   margin-bottom: var(--space-6);
   padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-rule);
 }
 
 .toc__title {
@@ -111,7 +110,9 @@ body {
   text-transform: uppercase;
   color: var(--color-section-num);
   text-decoration: none;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-rule);
   transition: color var(--transition-fast);
 }
 
