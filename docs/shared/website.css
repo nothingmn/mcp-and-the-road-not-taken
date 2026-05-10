@@ -501,7 +501,7 @@ body {
 
 .author-block {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-6);
   padding-top: var(--space-5);
