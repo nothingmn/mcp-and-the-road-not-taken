@@ -508,11 +508,16 @@ body {
   border-top: 1px solid var(--color-rule);
 }
 
+.author-block a {
+  line-height: 0;
+}
+
 .author-block__photo {
   width: 48px;
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
 }
 
 .author-block__info {
