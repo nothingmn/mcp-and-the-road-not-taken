@@ -95,7 +95,6 @@
 <p>MCP has crossed that threshold. Anthropic, OpenAI, Microsoft, and GitHub are all backing it. The registry exists. The SDKs exist. Developers are shipping servers. The conversation has moved from "should we have a standard?" to "how should the standard evolve?" That transition is the most important thing MCP has gotten right, because a protocol that nobody uses is not a protocol. It is a PDF.</p>
 <p>The architectural critique that follows is offered in that spirit. MCP's adoption proves the problem is real and the solution is viable. The question is whether the solution's transport layer will scale to the environments that adoption is already creating: MQTT sensors, gRPC microservices, WebSocket browsers, <a href="https://nats.io/">NATS</a> event streams, and the rest of the real-world infrastructure that a "USB-C for AI" will eventually need to plug into.</p>
 <hr />
-<p>← (Start) | ↑ [[_MoC|Index]] | → [[1.1 - Dropping Prompts, Adding Skills|Next: Dropping Prompts, Adding Skills]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -233,7 +232,6 @@
 <p>The 2025-11-25 specification allows servers to include <code>tools</code> and <code>toolChoice</code> in sampling requests, enabling multi-turn agentic loops within a single sampling interaction. The server can request that the client's LLM make tool calls, receive results, and continue reasoning, all within the context of a sampling request.</p>
 <p>This changes what "sampling" means architecturally. Sampling was originally a simple request: "here's a prompt, generate a completion." With tools, it becomes a recursive agentic loop: the server asks the client's LLM to reason, the LLM calls tools, the server provides tool results, the LLM continues reasoning. This is convergent with our Skills concept, from the opposite direction. Skills give the client procedural knowledge from the server. Sampling with tools gives the server the ability to drive the client's reasoning with its own tools. Both are composable. Both require trust negotiation. Both create recursive execution patterns that need the actor-like supervision the Addendum describes.</p>
 <hr />
-<p>← [[1 - The Good - What MCP Gets Right|Previous: The Good — What MCP Gets Right]] | ↑ [[_MoC|Index]] | → [[2 - <a href="https://web.archive.org/web/2024/https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">REST</a> Conventions - The Yardstick We Should Be Using|Next: REST Conventions — The Yardstick We Should Be Using]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-1" class="nav-footer__link">§1 What MCP Gets Right</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -306,7 +304,6 @@
 <p>The distinction matters. OAuth 2.1 is how HTTP handles authorization. It is the right answer for the HTTP binding. But MQTT handles authorization with TLS client certificates and username/password at the broker level. gRPC handles it with TLS mutual authentication and channel credentials. stdio handles it with Unix file permissions and process UID. A transport-agnostic protocol core should define what authorization means (the server needs to know who the client is and what it is allowed to do) but should let each binding express it in that transport's native idiom. The HTTP binding should use OAuth 2.1. The MQTT binding should use TLS mutual auth. The stdio binding should use process permissions. None of these is wrong. Each is correct for its transport.</p>
 <p>MCP's approach of embedding OAuth 2.1 details in the protocol specification is the same pattern as embedding SSE details in the protocol: it is correct for one transport and opaque to every other.</p>
 <hr />
-<p>← [[1.1 - Dropping Prompts, Adding Skills|Previous: Dropping Prompts, Adding Skills]] | ↑ [[_MoC|Index]] | → [[3 - Transport Diversity - Why Only stdio and HTTP|Next: Transport Diversity — Why Only stdio and HTTP]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-1-1" class="nav-footer__link">§1.1 Dropping Prompts, Adding Skills</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -451,51 +448,6 @@
 </ol>
 <p>This is how HTTP itself works: it runs over TCP, <a href="https://www.rfc-editor.org/rfc/rfc9000">QUIC</a>, Unix sockets, and TLS tunnels without changing the spec. MCP should aspire to the same.</p>
 <hr />
-<p>← [[2 - <a href="https://web.archive.org/web/2024/https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">REST</a> Conventions - The Yardstick We Should Be Using|Previous: REST Conventions — The Yardstick We Should Be Using]] | ↑ [[_MoC|Index]] | → [[4 - The Single-Endpoint POST-Everything Antipattern|Next: The Single-Endpoint POST-Everything Antipattern]]</p>
-      <nav class="nav-footer">
-<div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-2" class="nav-footer__link">§2 REST Conventions</a></div>
-<a href="#top" class="nav-footer__index">Index</a>
-<div class="nav-footer__next"><span class="nav-footer__label">Next</span><a href="#section-4" class="nav-footer__link">§4 The POST-Everything Antipattern</a></div>
-</nav>
-    </article>
-    
-
-
-    <article id="section-4" class="section">
-      <span class="section__number">§4</span>
-      <h2>4. The Single-Endpoint POST-Everything Antipattern</h2>
-<p>MCP's HTTP transport routes every operation through a single URL. Tools/list, tools/call, resources/read, prompts/list, cancellation notifications, initialization handshakes: all POST to <code>/mcp</code>. The HTTP method conveys zero semantic information. The URL conveys zero semantic information. The entire request is an opaque <a href="https://www.jsonrpc.org/specification">JSON-RPC</a> envelope dropped into a single hole.</p>
-<p>This is not a stylistic preference. It is an architectural decision with operational consequences that are invisible until something breaks, at which point they are everywhere.</p>
-<h3>What RESTful Routing Looks Like</h3>
-<p>Under <a href="https://web.archive.org/web/2024/https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">REST</a> conventions, the same operations would be expressed as distinct resources with appropriate methods:</p>
-<div class="highlight"><pre><span></span><code><span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">tools</span><span class="w">                          </span><span class="err">→</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">available</span><span class="w"> </span><span class="n">tools</span><span class="w"></span>
-<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="w">                     </span><span class="err">→</span><span class="w"> </span><span class="n">describe</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">specific</span><span class="w"> </span><span class="k">tool</span><span class="w"></span>
-<span class="n">POST</span><span class="w">   </span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="o">/</span><span class="n">call</span><span class="w">                </span><span class="err">→</span><span class="w"> </span><span class="n">invoke</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="k">tool</span><span class="w"></span>
-<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">resources</span><span class="w">                       </span><span class="err">→</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">available</span><span class="w"> </span><span class="n">resources</span><span class="w"></span>
-<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">resources</span><span class="o">/</span><span class="p">:</span><span class="n">uri</span><span class="w">                  </span><span class="err">→</span><span class="w"> </span><span class="n">read</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">resource</span><span class="w"> </span><span class="n">value</span><span class="w"></span>
-<span class="n">POST</span><span class="w">   </span><span class="o">/</span><span class="n">resources</span><span class="o">/</span><span class="p">:</span><span class="n">uri</span><span class="o">/</span><span class="n">subscribe</span><span class="w">       </span><span class="err">→</span><span class="w"> </span><span class="n">subscribe</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">resource</span><span class="w"> </span><span class="n">updates</span><span class="w"></span>
-<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">prompts</span><span class="w">                         </span><span class="err">→</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">available</span><span class="w"> </span><span class="n">prompts</span><span class="w"></span>
-<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">prompts</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="w">                   </span><span class="err">→</span><span class="w"> </span><span class="n">describe</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">specific</span><span class="w"> </span><span class="n">prompt</span><span class="w"></span>
-<span class="n">POST</span><span class="w">   </span><span class="o">/</span><span class="n">prompts</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="w">                   </span><span class="err">→</span><span class="w"> </span><span class="n">render</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">prompt</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">arguments</span><span class="w"></span>
-<span class="n">DELETE</span><span class="w"> </span><span class="o">/</span><span class="n">session</span><span class="w">                         </span><span class="err">→</span><span class="w"> </span><span class="n">terminate</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">session</span><span class="w"></span>
-</code></pre></div>
-
-<p>The URL and method together tell the full story. A load balancer can route <code>/tools</code> requests to one pool and <code>/resources</code> requests to another. A CDN can cache <code>GET /tools</code> responses. A firewall can allow <code>GET</code> and block <code>POST</code>. An observability pipeline can count tool calls per endpoint without parsing JSON-RPC envelopes.</p>
-<p>None of this works when everything is <code>POST /mcp</code>.</p>
-<h3>What Is Lost</h3>
-<p><strong>Caching.</strong> <code>GET</code> responses are cacheable by definition. Proxies, CDNs, and browsers can cache <code>GET /tools</code> because the method is safe and the URL identifies the resource. <code>POST /mcp</code> is not cacheable by any standard HTTP mechanism. A tools/list response that changes once an hour is fetched every time because the client has no way to express "give me this if it has not changed." No <code>ETag</code>. No <code>Cache-Control</code>. No conditional <code>If-None-Match</code>.</p>
-<p><strong>Observability.</strong> Every monitoring tool in the HTTP ecosystem understands methods, URLs, and status codes. A dashboard that shows "95th percentile latency for POST /mcp" tells you nothing. A dashboard that shows "95th percentile latency for POST /tools/search/call" tells you which tool is slow. When the URL is always <code>/mcp</code> and the method is always POST, the HTTP layer becomes opaque. You have to parse JSON-RPC envelopes in your logging pipeline to get visibility that REST gives you for free.</p>
-<p><strong>Firewall and gateway granularity.</strong> A WAF rule that allows <code>GET /resources/*</code> and blocks <code>POST /tools/*</code> expresses a security policy in terms the infrastructure understands. A rule that allows <code>POST /mcp</code> with a JSON-RPC body filter does not, because WAFs do not parse JSON-RPC. The same applies to API gateways, service meshes, and rate limiters that operate at the HTTP method and path level.</p>
-<p><strong>CDN and proxy support.</strong> CDNs are built to cache <code>GET</code> responses and pass through <code>POST</code> requests. When a read-only operation like listing available tools is expressed as a <code>POST</code>, CDNs cannot help. Proxies that buffer <code>POST</code> bodies differently than <code>GET</code> responses introduce latency and failure modes that do not exist when the method matches the operation's semantics.</p>
-<h3>The RPC-over-HTTP Trap</h3>
-<p>This is not a new pattern. SOAP routed all operations through a single endpoint, typically <code>/soap</code> or <code>/wsdl</code>, and encoded the operation in the XML body. XML-RPC did the same with a smaller envelope. Both were technically functional. Both were operationally opaque. Both were replaced by REST not because REST was more powerful but because REST was more legible. The infrastructure could see what was happening without being told.</p>
-<p>MCP has reinvented the SOAP pattern with a JSON envelope. The operation is in the body, not in the method or the URL. The endpoint is a tunnel. The HTTP layer is a pipe that carries bytes without understanding them. This is exactly the criticism that the REST community leveled against SOAP twenty years ago, and it is valid for the same reasons.</p>
-<p>The defense of RPC-over-HTTP is that it simplifies the client: one URL, one method, one pattern. This is true. It simplifies the client by offloading complexity to every piece of infrastructure between the client and the server. That tradeoff might be acceptable in a controlled environment where you own every hop. It becomes a liability in any environment where you do not.</p>
-<h3>The Stdio Exception</h3>
-<p>One transport does not suffer from this problem: stdio. On stdio, there are no URLs, no methods, and no intermediaries. JSON-RPC over stdio makes sense because there is no HTTP layer to violate. The method is the message. The envelope is the protocol. Stdio is not REST, and it does not need to be.</p>
-<p>The problem is that MCP's HTTP binding chose to be JSON-RPC over HTTP instead of REST over HTTP. It treated HTTP as a pipe rather than a protocol. The result is a transport that works but that refuses to participate in the ecosystem that makes HTTP valuable in the first place.</p>
-<hr />
-<p>← [[3 - Transport Diversity - Why Only stdio and HTTP|Previous: Transport Diversity — Why Only stdio and HTTP]] | ↑ [[_MoC|Index]] | → [[5 - Content Negotiation as Transport Fork|Next: Content Negotiation as Transport Fork]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-3" class="nav-footer__link">§3 Transport Diversity</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -531,7 +483,6 @@
 <p>The 2025-11-25 revision of the MCP specification replaces the original HTTP+SSE transport with "Streamable HTTP." SSE is now optional: the server can return <code>application/json</code> directly. A <code>GET</code> to the endpoint opens a standalone SSE stream. A <code>POST</code> can return JSON or SSE depending on whether the server needs to push. The <code>MCP-Protocol-Version</code> header is now required on all requests. Session termination uses an explicit <code>DELETE</code> request.</p>
 <p>This is an improvement. It removes the worst fork: the client no longer has to guess whether a POST will return JSON or SSE based on its <code>Accept</code> header. But the fundamental issue remains: the MCP endpoint is still a single URL that does everything, and the choice between request-response and streaming is still expressed in the response rather than determined by the request's structure. The server decides. The client adapts. The transport semantics are still emergent rather than declared.</p>
 <hr />
-<p>← [[4 - The Single-Endpoint POST-Everything Antipattern|Previous: The Single-Endpoint POST-Everything Antipattern]] | ↑ [[_MoC|Index]] | → [[6 - Status Codes That Lie|Next: Status Codes That Lie]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-4" class="nav-footer__link">§4 The POST-Everything Antipattern</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -613,7 +564,6 @@
 <p>A slow request, sure. But all successful. Until someone parses the JSON-RPC body and discovers that the 2340ms request returned <code>-32603 Internal error</code>. The proxy did not know. The load balancer did not know. The rate limiter did not know. The only system that knew was the MCP client, which had to implement its own error tracking from scratch because every piece of infrastructural observability is blind to the actual status of the operation.</p>
 <p>This is not a theoretical concern. It is a daily operational reality for any team running MCP servers in production behind standard HTTP infrastructure. They will build custom JSON-RPC parsing middleware for their monitoring, their alerting, and their dashboards. They will reinvent HTTP status codes, poorly, inside their own telemetry pipeline.</p>
 <hr />
-<p>← [[5 - Content Negotiation as Transport Fork|Previous: Content Negotiation as Transport Fork]] | ↑ [[_MoC|Index]] | → [[7 - Session Management via Custom Header|Next: Session Management via Custom Header]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-5" class="nav-footer__link">§5 Content Negotiation</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -652,7 +602,6 @@
 </ul>
 <p>Same protocol semantics. Different transport expressions. No custom headers. No reinvention tax. No proxy-stripping surprises.</p>
 <hr />
-<p>← [[6 - Status Codes That Lie|Previous: Status Codes That Lie]] | ↑ [[_MoC|Index]] | → [[8 - The SSE Stream Architecture - Clever but Fragile|Next: The SSE Stream Architecture — Clever but Fragile]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-6" class="nav-footer__link">§6 Status Codes That Lie</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -688,7 +637,6 @@
 <p>The 2025-11-25 revision addresses the worst of these problems by making SSE optional. A POST can now return <code>application/json</code> directly for simple request-response interactions. SSE streams are only opened when the server needs to push data. This fixes the "every response is an SSE stream" problem and reduces connection consumption.</p>
 <p>But SSE resumption, proxy buffering, disconnection semantics, and the custom cursor protocol remain. The underlying fragility is reduced, not eliminated. The server still decides whether a response is JSON or SSE, not the client's request structure. The transport semantics are still emergent rather than declared. The fundamental critique holds: MCP has built a custom streaming protocol on top of HTTP because HTTP alone cannot do what the application needs, when other transports can do it natively.</p>
 <hr />
-<p>← [[7 - Session Management via Custom Header|Previous: Session Management via Custom Header]] | ↑ [[_MoC|Index]] | → [[9 - Batch Without Boundaries|Next: Batch Without Boundaries]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-7" class="nav-footer__link">§7 Session Management</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -735,7 +683,6 @@
 </ul>
 <p>None of these are novel. Message queue protocols, database batch APIs, and distributed task systems all solve these problems. MCP's batching inherits JSON-RPC 2.0's minimal semantics and adds nothing. The result is a feature that works for the happy path and is undefined for every failure mode.</p>
 <hr />
-<p>← [[8 - The SSE Stream Architecture - Clever but Fragile|Previous: The SSE Stream Architecture — Clever but Fragile]] | ↑ [[_MoC|Index]] | → [[10 - A Transport-Agnostic Alternative - Designing the Protocol First, Binding Later|Next: A Transport-Agnostic Alternative — Designing the Protocol First, Binding Later]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-8" class="nav-footer__link">§8 SSE Architecture</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1364,7 +1311,6 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 </table>
 <p>The table makes the point: no single transport covers all concerns. The protocol core is what stays constant; the binding adapts. A protocol that only defines two transports has blind spots the size of MQTT, gRPC, and shared memory.</p>
 <hr />
-<p>← [[9 - Batch Without Boundaries|Previous: Batch Without Boundaries]] | ↑ [[_MoC|Index]] | → [[11 - What MCP Gets Right (Revisited)|Next: What MCP Gets Right (Revisited)]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-9" class="nav-footer__link">§9 Batch Without Boundaries</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1391,7 +1337,6 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <h3>The Stakes</h3>
 <p>The real world has <a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT</a> sensors, <a href="https://grpc.io/">gRPC</a> microservices, WebSocket browsers, <a href="https://nats.io/">NATS</a> event streams, <a href="https://zeromq.org/">ZeroMQ</a> local meshes, and shared-memory local tools. MCP's protocol semantics could serve all of these environments. Its transport binding currently serves two. The gap is not theoretical. It is the distance between "a protocol that works for local tools and network servers" and "a protocol that works everywhere tools and context are needed."</p>
 <hr />
-<p>← [[10 - A Transport-Agnostic Alternative - Designing the Protocol First, Binding Later|Previous: A Transport-Agnostic Alternative — Designing the Protocol First, Binding Later]] | ↑ [[_MoC|Index]] | → [[12 - <a href="https://www.poetryfoundation.org/poems/44272/the-road-not-taken">The Road Not Taken</a>|Next: The Road Not Taken]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-10" class="nav-footer__link">§10 A Transport-Agnostic Alternative</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1411,7 +1356,6 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <p>The practical path forward is not to replace MCP. It is to refactor it. The protocol semantics (tools, resources, capabilities, initialization) are sound. The transport bindings are where the coupling hurts. A specification effort that extracted the protocol core from the HTTP binding, defined the abstract operations and their QoS requirements, and then wrote a new HTTP binding that used RESTful semantics, a MQTT binding that used publish/subscribe, a gRPC binding that used protobuf and streaming, and so on, would be an incremental improvement that preserves everything MCP got right and fixes everything it got wrong.</p>
 <p>This is the road not taken. It is still there. And the signal that it is worth taking is precisely the adoption that MCP has already achieved. A protocol that nobody uses cannot be improved. A protocol that millions of developers depend on can be. The opportunity to make MCP transport-agnostic exists because MCP succeeded. The road not taken is open because the road that was taken proved the destination was worth reaching.</p>
 <hr />
-<p>← [[11 - What MCP Gets Right (Revisited)|Previous: What MCP Gets Right (Revisited)]] | ↑ [[_MoC|Index]] | → [[Addendum - The Missing Middle — Actor Orchestration Above MCP and <a href="https://github.com/a2aproject/A2A">A2A</a>|Next: Addendum — The Missing Middle]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-11" class="nav-footer__link">§11 What MCP Gets Right (Revisited)</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1483,7 +1427,6 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <p>This addendum argues that the orchestration layer above it should be actor-model-based for the same reason. The message is the unit of work. Where it executes is a routing decision. How it is supervised is a supervision tree decision. What trust it carries is an inheritance decision. None of these are transport concerns. None of them are protocol concerns. They are orchestration concerns, and the actor model addresses them by construction rather than by convention.</p>
 <p>The two arguments reinforce each other. Transport-agnostic protocol means the message format does not change when the transport changes. Actor orchestration means the routing and supervision do not change when the execution location changes. Together, they push all the variability down (transport bindings) and all the control up (supervision and trust), leaving the protocol core in the middle, clean and stable, doing what protocols should do: defining what the messages mean, not how they get there or who handles them.</p>
 <hr />
-<p>← [[12 - <a href="https://www.poetryfoundation.org/poems/44272/the-road-not-taken">The Road Not Taken</a>|Previous: The Road Not Taken]] | ↑ [[_MoC|Index]] | → [[Appendix - Sources and References|Next: Appendix — Sources and References]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-12" class="nav-footer__link">§12 The Road Not Taken</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1858,7 +1801,6 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 </tbody>
 </table>
 <hr />
-<p>← [[Addendum - The Missing Middle — Actor Orchestration Above MCP and A2A|Previous: Addendum]] | ↑ [[_MoC|Index]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#addendum" class="nav-footer__link">§add The Missing Middle</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
