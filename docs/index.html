@@ -9,7 +9,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;0,7..72,700;1,7..72,400;1,7..72,500;1,7..72,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- Styles -->
   <link rel="stylesheet" href="shared/tokens.css">
@@ -24,7 +24,6 @@
   <!-- Sticky sidebar TOC -->
   <nav class="toc" id="toc">
     <div class="toc__header">
-      <a href="https://ethersolutions.ca/" class="toc__home">Ether Solutions</a>
       <a href="#top" class="toc__title">MCP &amp; the Road Not Taken</a>
     </div>
     <ol class="toc__list">
@@ -57,22 +56,13 @@
 
     <!-- Hero -->
     <header class="hero">
-      <span class="section-marker">Essay · 45 min read</span>
+      <span class="section-marker">Essay · 20,500 words · 45 min read</span>
       <h1 class="hero__title">MCP and the Road Not Taken</h1>
       <p class="hero__subtitle">An Architect's Reading of the Model Context Protocol</p>
       <p class="hero__meta">
         An architectural critique read through the lens of REST and distributed systems design.<br>
         What MCP gets right, what it reinvents, and what it left on the table.
       </p>
-      <div class="author-block">
-        <a class="author-block__photo-link" href="https://www.linkedin.com/in/rob-chartier/" target="_blank" rel="noopener">
-          <img class="author-block__photo" src="shared/author-photo.png" alt="Rob Chartier">
-        </a>
-        <div class="author-block__info">
-          <a class="author-block__name" href="https://www.linkedin.com/in/rob-chartier/" target="_blank" rel="noopener">Rob Chartier</a>
-          <time class="author-block__date" datetime="2025-05-09">May 9, 2025</time>
-        </div>
-      </div>
     </header>
 
     
@@ -104,6 +94,7 @@
 <p>MCP has crossed that threshold. Anthropic, OpenAI, Microsoft, and GitHub are all backing it. The registry exists. The SDKs exist. Developers are shipping servers. The conversation has moved from "should we have a standard?" to "how should the standard evolve?" That transition is the most important thing MCP has gotten right, because a protocol that nobody uses is not a protocol. It is a PDF.</p>
 <p>The architectural critique that follows is offered in that spirit. MCP's adoption proves the problem is real and the solution is viable. The question is whether the solution's transport layer will scale to the environments that adoption is already creating: MQTT sensors, gRPC microservices, WebSocket browsers, <a href="https://nats.io/">NATS</a> event streams, and the rest of the real-world infrastructure that a "USB-C for AI" will eventually need to plug into.</p>
 <hr />
+<p>← (Start) | ↑ [[_MoC|Index]] | → [[1.1 - Dropping Prompts, Adding Skills|Next: Dropping Prompts, Adding Skills]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -116,14 +107,14 @@
     <article id="section-1-1" class="section">
       <span class="section__number">§1.1</span>
       <h2>1.1 Dropping Prompts, Adding Skills</h2>
-<p>MCP defines three resource types: Tools, Resources, and Prompts. The first two are well-grounded. The third reflects where the industry started, not where it's going. In an agentic world, prompts are giving way to skills, and the protocol should evolve with that trajectory. Here's the case for keeping Tools and Resources, dropping Prompts, and replacing them with Skills.</p>
+<p>MCP defines three server primitives: Tools, Resources, and Prompts. The first two are well-grounded. The third reflects where the industry started, not where it's going. In an agentic world, prompts are giving way to skills, and the protocol should evolve with that trajectory. Here's the case for keeping Tools and Resources, dropping Prompts, and replacing them with Skills.</p>
 <h3>Tools — Actions with Side Effects</h3>
 <p>Tools are verbs. The LLM calls a tool to <em>do</em> something: invoke an API, execute code, send an email, debit an account. The defining property of a tool is that calling it twice may produce different results. This is the <a href="https://martinfowler.com/bliki/CQRS.html">CQRS</a> <em>command</em> side: non-idempotent, non-cacheable, strongly consistent. The LLM <em>drives</em> the action. No justification needed: this is the core of what a tool protocol must support.</p>
 <h3>Resources — Observations of Independent State</h3>
 <p>Resources are nouns that live on their own schedule. A database view, a set of log files, a live sensor feed: these exist and evolve whether or not the LLM is watching. The LLM can list what's available, read the current state, or subscribe to changes. The defining property of a resource is that the LLM is an <em>observer</em>, not a driver. If you model "read the current git diff" as a tool call, you've made the LLM the instigator of an observation. But the diff exists without the LLM. The subscription semantic ("tell me when this changes") is fundamentally different from "call this function." Resources earn their place because they model a different relationship between the LLM and the data.</p>
 <p>The 2025-11-25 specification formalizes resource subscriptions with <code>resources/subscribe</code>, <code>resources/unsubscribe</code>, and <code>notifications/resources/updated</code>. It also introduces <code>resources/templates/list</code> for parameterized URI templates. Both additions reinforce the architectural point: resources are a distinct interaction pattern (observe and be notified of changes), not a variation on tool invocation.</p>
 <h3>Why Prompts Don't Earn Their Place</h3>
-<p>MCP's Prompts are parameterized text templates: fill in the blanks, assemble some context, hand it to the LLM. This is decorative, not architectural. A prompt template is just data. It could be a Resource (the LLM reads the template, fills it in itself) or a Tool (the server renders the template and returns the text). Giving Prompts their own first-class resource type is like giving HTML templates their own HTTP method: it confuses the medium with the message.</p>
+<p>MCP's Prompts are spec'd as "templated messages and workflows," but in practice they are parameterized text templates: fill in the blanks, assemble some context, hand it to the LLM. This is decorative, not architectural. A prompt template is just data. It could be a Resource (the LLM reads the template, fills it in itself) or a Tool (the server renders the template and returns the text). Giving Prompts their own first-class resource type is like giving HTML templates their own HTTP method: it confuses the medium with the message.</p>
 <h3>Skills — Procedural Knowledge, Not Decorative Text</h3>
 <p>A <em>skill</em> is a richer construct. Where a prompt says "here's how to ask the question," a skill says "here's how to solve this class of problem." Skills encode procedural knowledge: which tools to call, in what order, with what validation, producing what kind of output. A skill for "debug a failing test" isn't a text template. It's a workflow: read the test output, identify the failing assertion, read the relevant source files, propose a fix, run the test again, iterate. The skill isn't the text; it's the strategy.</p>
 <p>This distinction matters architecturally because skills are <em>composed</em> from tools and resources. A skill orchestrates. A prompt decorates. The protocol needs orchestration, not decoration.</p>
@@ -241,6 +232,7 @@
 <p>The 2025-11-25 specification allows servers to include <code>tools</code> and <code>toolChoice</code> in sampling requests, enabling multi-turn agentic loops within a single sampling interaction. The server can request that the client's LLM make tool calls, receive results, and continue reasoning, all within the context of a sampling request.</p>
 <p>This changes what "sampling" means architecturally. Sampling was originally a simple request: "here's a prompt, generate a completion." With tools, it becomes a recursive agentic loop: the server asks the client's LLM to reason, the LLM calls tools, the server provides tool results, the LLM continues reasoning. This is convergent with our Skills concept, from the opposite direction. Skills give the client procedural knowledge from the server. Sampling with tools gives the server the ability to drive the client's reasoning with its own tools. Both are composable. Both require trust negotiation. Both create recursive execution patterns that need the actor-like supervision the Addendum describes.</p>
 <hr />
+<p>← [[1 - The Good - What MCP Gets Right|Previous: The Good — What MCP Gets Right]] | ↑ [[_MoC|Index]] | → [[2 - <a href="https://web.archive.org/web/2024/https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">REST</a> Conventions - The Yardstick We Should Be Using|Next: REST Conventions — The Yardstick We Should Be Using]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-1" class="nav-footer__link">§1 What MCP Gets Right</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -280,8 +272,8 @@
 </ul>
 <h3>2.5 Code on Demand (Optional)</h3>
 <p>The least exercised of Fielding's constraints, and the most interesting for MCP. Code on Demand means the server can extend client functionality at runtime by transferring executable code: JavaScript in the browser, stored procedures in a database, plugins in an editor.</p>
-<p>MCP already does this. It just does not have the vocabulary to say so.</p>
-<p>A tool definition is code on demand. The client did not know how to call <code>weather_forecast</code> until the server told it about the tool's name, parameters, and return type. The server extended the client's capability set at runtime. A skill definition (as outlined in §1.1) goes further: the server ships a package containing instructions, context, and validation rules. The client reads the package and gains the ability to perform a task it could not perform before. The LLM interprets the instructions instead of a JavaScript runtime, but the architecture is the same: the client is a universal executor that becomes specialized by the code (or prompt, or procedural knowledge) the server sends.</p>
+<p>MCP already does something analogous. It just does not have the vocabulary to say so.</p>
+<p>A tool definition is code on demand by analogy. The client did not know how to call <code>weather_forecast</code> until the server told it about the tool's name, parameters, and return type. The server extended the client's capability set at runtime. This is not literally executable code the client runs, as Fielding originally defined Code on Demand, but the architectural pattern, server-ships-capability-to-an-unspecialized-client, is the same. A skill definition (as outlined in §1.1) goes further: the server ships a package containing instructions, context, and validation rules. The client reads the package and gains the ability to perform a task it could not perform before. The LLM interprets the instructions instead of a JavaScript runtime, but the architecture is the same: the client is a universal executor that becomes specialized by the code (or prompt, or procedural knowledge) the server sends.</p>
 <p>The difference between "code on demand" and "prompt on demand" is the execution model, not the architectural pattern. In both cases, the server ships capability to a previously unspecialized client. In both cases, the client's behavior after receiving the payload differs from its behavior before. In both cases, trust is the central question: should the client execute what the server sent?</p>
 <p>This is where Code on Demand connects to the trust model. Fielding's constraint assumes the client trusts the server enough to execute the code it receives. In the web, that trust is bounded by the browser's sandbox, the same-origin policy, and content security policies. In MCP, the trust boundary is undefined. A tool call can execute arbitrary code on the server. A skill definition can direct arbitrary behavior on the client. The protocol has no sandbox, no same-origin equivalent, and no capability-based trust boundary. It assumes the client-server relationship is already trusted.</p>
 <p>This assumption works for local tools on your own machine (the stdio use case). It breaks for remote servers whose trustworthiness is unknown. Code on Demand, when done deliberately, includes trust negotiation. MCP has no such mechanism.</p>
@@ -306,13 +298,14 @@
 <p><strong>OpenAPI / <a href="https://www.asyncapi.com/docs/reference/specification/v3.0.0">AsyncAPI</a></strong>: Standard machine-readable API descriptions exist. MCP invents its own capability advertisement at init, which is fine, but it means no existing tooling (Swagger UI, API gateways, client generators) can consume an MCP server's capabilities without a translation layer. AsyncAPI could describe the streaming event contracts and <a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT</a> topic structures that MCP might expose.</p>
 <p><strong>The <a href="https://12factor.net/">Twelve-Factor App</a></strong>: Port binding (the server is self-contained), backing services as attached resources, dev/prod parity. MCP's transport spec doesn't address how an MCP server should be deployed. It assumes a process exists. Twelve-factor guidance on configurability (environment variables for the MCP endpoint URL, not hard-coded) and disposability (fast startup, graceful shutdown of streaming connections) would be natural additions.</p>
 <p><strong>Unix Philosophy</strong>: Do one thing well. Stdio transport respects this: stdin in, stdout out, no ceremony. Streamable HTTP violates it: one endpoint does reads, writes, streaming, session management, cancellation, and batching. A Unix-philosophy MCP would have small, composable endpoints with clear boundaries.</p>
-<p><strong><a href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing">Fallacies of Distributed Computing</a></strong>: The eight fallacies are a checklist for protocol design. MCP trips on several: "the network is reliable" (SSE disconnection is an afterthought, resumability is optional), "latency is zero" (no timeout guidance in the spec), "topology doesn't change" (no service discovery, no retry-on-redirect), "there is one administrator" (custom headers mean every admin must know MCP's quirks).</p>
+<p><strong><a href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing">Fallacies of Distributed Computing</a></strong>: The eight fallacies are a checklist for protocol design. MCP trips on several: "the network is reliable" (SSE disconnection is an afterthought, resumability is optional), "latency is zero" (timeout guidance was added in the 2025-11-25 revision; earlier drafts had none), "topology doesn't change" (no service discovery, no retry-on-redirect), "there is one administrator" (custom headers mean every admin must know MCP's quirks).</p>
 <p><strong><a href="https://martinfowler.com/eaaDev/EventSourcing.html">Event Sourcing</a></strong>: Server-to-client notifications (tool results, resource changes, progress updates) are an event stream. SSE provides the transport but MCP doesn't define event types, versioning, or replay semantics beyond the raw <code>id</code> cursor. An event-sourcing approach would give clients a durable, re-playable log of what happened, not just a transient SSE firehose.</p>
 <p><strong>The <a href="https://en.wikipedia.org/wiki/Object-Oriented_Software_Construction">Open/Closed Principle</a> (Meyer)</strong>: Software entities should be open for extension, closed for modification. MCP's transport model is hard-coded to two options: stdio and Streamable HTTP. Adding a third transport means amending the spec itself. A protocol designed for extension would define a transport interface (message framing, connection lifecycle, capability negotiation) and let the community implement it over MQTT, AMQP, WebSocket, gRPC, Unix sockets, or anything with bidirectional message exchange, without touching the core spec.</p>
 <p><strong>Authorization Is a Transport Concern</strong>: MCP's 2025-11-25 specification devotes over 40 pages to <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1">OAuth 2.1</a> framework details: <a href="https://www.rfc-editor.org/rfc/rfc9728">RFC 9728</a> Protected Resource Metadata, <a href="https://www.rfc-editor.org/rfc/rfc8414">RFC 8414</a> Authorization Server Discovery, <a href="https://openid.net/specs/openid-connect-discovery-1_0.html">OpenID Connect Discovery</a>, <a href="https://www.rfc-editor.org/rfc/rfc7636">PKCE</a>, step-up authorization, token audience binding, and confused deputy mitigations. This is an extensive, well-considered authorization model. It is also a transport-layer concern elevated to the protocol layer.</p>
 <p>The distinction matters. OAuth 2.1 is how HTTP handles authorization. It is the right answer for the HTTP binding. But MQTT handles authorization with TLS client certificates and username/password at the broker level. gRPC handles it with TLS mutual authentication and channel credentials. stdio handles it with Unix file permissions and process UID. A transport-agnostic protocol core should define what authorization means (the server needs to know who the client is and what it is allowed to do) but should let each binding express it in that transport's native idiom. The HTTP binding should use OAuth 2.1. The MQTT binding should use TLS mutual auth. The stdio binding should use process permissions. None of these is wrong. Each is correct for its transport.</p>
 <p>MCP's approach of embedding OAuth 2.1 details in the protocol specification is the same pattern as embedding SSE details in the protocol: it is correct for one transport and opaque to every other.</p>
 <hr />
+<p>← [[1.1 - Dropping Prompts, Adding Skills|Previous: Dropping Prompts, Adding Skills]] | ↑ [[_MoC|Index]] | → [[3 - Transport Diversity - Why Only stdio and HTTP|Next: Transport Diversity — Why Only stdio and HTTP]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-1-1" class="nav-footer__link">§1.1 Dropping Prompts, Adding Skills</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -409,11 +402,11 @@
 </ul>
 <p><strong>The trade-off:</strong> ZeroMQ has no broker, which means no built-in message persistence, no built-in replay, no management dashboard. It trades operational guarantees for library-level simplicity. For local MCP tool servers (the majority use case today), that's exactly the right trade. For distributed deployments, NATS or MQTT are better answers.</p>
 <h3>3.4 Shared Memory / Ring Buffer — The Zero-Copy Local Fast Path</h3>
-<p>When client and server are on the same machine, even stdio copies data through kernel buffers twice (write to pipe → kernel buffer → read from pipe). Shared memory ring buffers eliminate the copies entirely. The producer writes directly into a memory-mapped region; the consumer reads from the same region. No syscall, no serialization, no kernel transition for small messages.</p>
+<p>When client and server are on the same machine, even stdio copies data through kernel buffers twice (write to pipe → kernel buffer → read from pipe). Shared memory ring buffers eliminate the copies entirely. The producer writes directly into a memory-mapped region; the consumer reads from the same region. No syscall on the hot path, no JSON serialization with binary schemas, no kernel transition for small messages.</p>
 <p><strong>Why shared memory matters for MCP:</strong></p>
 <ul>
 <li>
-<p><strong>Latency disappears</strong>: A tool invocation on shared memory can complete in under a microsecond. stdio through a pipe is 10-50 microseconds. HTTP over localhost is 100-1000 microseconds. When an LLM calls a tool dozens of times per inference step (tool chaining, multi-step reasoning), this adds up. Shared memory is the only transport that makes per-token tool calls viable.</p>
+<p><strong>Latency disappears</strong>: A tool invocation on shared memory can reach sub-microsecond latency in optimized designs. stdio through a pipe is 10-50 microseconds. HTTP over localhost is 100-1000 microseconds. When an LLM calls a tool dozens of times per inference step (tool chaining, multi-step reasoning), this adds up. Shared memory is the only transport that makes per-token tool calls viable.</p>
 </li>
 <li>
 <p><strong>The ring buffer pattern is battle-tested</strong>: <a href="https://lmax-exchange.github.io/disruptor/">LMAX Disruptor</a> (financial trading, 20M+ transactions/second), <a href="https://www.dpdk.org/">DPDK</a> (network packet processing), audio subsystems (JACK, <a href="https://www.pipewire.org/">PipeWire</a>), all use lock-free ring buffers over shared memory. This isn't exotic. It's how systems that care about latency actually work.</p>
@@ -457,6 +450,51 @@
 </ol>
 <p>This is how HTTP itself works: it runs over TCP, <a href="https://www.rfc-editor.org/rfc/rfc9000">QUIC</a>, Unix sockets, and TLS tunnels without changing the spec. MCP should aspire to the same.</p>
 <hr />
+<p>← [[2 - <a href="https://web.archive.org/web/2024/https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">REST</a> Conventions - The Yardstick We Should Be Using|Previous: REST Conventions — The Yardstick We Should Be Using]] | ↑ [[_MoC|Index]] | → [[4 - The Single-Endpoint POST-Everything Antipattern|Next: The Single-Endpoint POST-Everything Antipattern]]</p>
+      <nav class="nav-footer">
+<div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-2" class="nav-footer__link">§2 REST Conventions</a></div>
+<a href="#top" class="nav-footer__index">Index</a>
+<div class="nav-footer__next"><span class="nav-footer__label">Next</span><a href="#section-4" class="nav-footer__link">§4 The POST-Everything Antipattern</a></div>
+</nav>
+    </article>
+    
+
+
+    <article id="section-4" class="section">
+      <span class="section__number">§4</span>
+      <h2>4. The Single-Endpoint POST-Everything Antipattern</h2>
+<p>MCP's Streamable HTTP transport routes client-to-server operations through a single URL. Tools/list, tools/call, resources/read, prompts/list, cancellation notifications, initialization handshakes: all POST to <code>/mcp</code>. Server-to-client streaming uses GET on the same endpoint; session termination may use DELETE. The HTTP method conveys almost zero semantic information. The URL conveys zero semantic information. The entire request is an opaque <a href="https://www.jsonrpc.org/specification">JSON-RPC</a> envelope dropped into a single hole.</p>
+<p>This is not a stylistic preference. It is an architectural decision with operational consequences that are invisible until something breaks, at which point they are everywhere.</p>
+<h3>What RESTful Routing Looks Like</h3>
+<p>Under <a href="https://web.archive.org/web/2024/https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">REST</a> conventions, the same operations would be expressed as distinct resources with appropriate methods:</p>
+<div class="highlight"><pre><span></span><code><span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">tools</span><span class="w">                          </span><span class="err">→</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">available</span><span class="w"> </span><span class="n">tools</span><span class="w"></span>
+<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="w">                     </span><span class="err">→</span><span class="w"> </span><span class="n">describe</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">specific</span><span class="w"> </span><span class="k">tool</span><span class="w"></span>
+<span class="n">POST</span><span class="w">   </span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="o">/</span><span class="n">call</span><span class="w">                </span><span class="err">→</span><span class="w"> </span><span class="n">invoke</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="k">tool</span><span class="w"></span>
+<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">resources</span><span class="w">                       </span><span class="err">→</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">available</span><span class="w"> </span><span class="n">resources</span><span class="w"></span>
+<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">resources</span><span class="o">/</span><span class="p">:</span><span class="n">uri</span><span class="w">                  </span><span class="err">→</span><span class="w"> </span><span class="n">read</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">resource</span><span class="w"> </span><span class="n">value</span><span class="w"></span>
+<span class="n">POST</span><span class="w">   </span><span class="o">/</span><span class="n">resources</span><span class="o">/</span><span class="p">:</span><span class="n">uri</span><span class="o">/</span><span class="n">subscribe</span><span class="w">       </span><span class="err">→</span><span class="w"> </span><span class="n">subscribe</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">resource</span><span class="w"> </span><span class="n">updates</span><span class="w"></span>
+<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">prompts</span><span class="w">                         </span><span class="err">→</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">available</span><span class="w"> </span><span class="n">prompts</span><span class="w"></span>
+<span class="n">GET</span><span class="w">    </span><span class="o">/</span><span class="n">prompts</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="w">                   </span><span class="err">→</span><span class="w"> </span><span class="n">describe</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">specific</span><span class="w"> </span><span class="n">prompt</span><span class="w"></span>
+<span class="n">POST</span><span class="w">   </span><span class="o">/</span><span class="n">prompts</span><span class="o">/</span><span class="p">:</span><span class="n">name</span><span class="w">                   </span><span class="err">→</span><span class="w"> </span><span class="n">render</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">prompt</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">arguments</span><span class="w"></span>
+<span class="n">DELETE</span><span class="w"> </span><span class="o">/</span><span class="n">session</span><span class="w">                         </span><span class="err">→</span><span class="w"> </span><span class="n">terminate</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">session</span><span class="w"></span>
+</code></pre></div>
+
+<p>The URL and method together tell the full story. A load balancer can route <code>/tools</code> requests to one pool and <code>/resources</code> requests to another. A CDN can cache <code>GET /tools</code> responses. A firewall can allow <code>GET</code> and block <code>POST</code>. An observability pipeline can count tool calls per endpoint without parsing JSON-RPC envelopes.</p>
+<p>None of this works when everything is <code>POST /mcp</code>.</p>
+<h3>What Is Lost</h3>
+<p><strong>Caching.</strong> <code>GET</code> responses are cacheable by definition. Proxies, CDNs, and browsers can cache <code>GET /tools</code> because the method is safe and the URL identifies the resource. <code>POST /mcp</code> is not cacheable by any standard HTTP mechanism. A tools/list response that changes once an hour is fetched every time because the client has no way to express "give me this if it has not changed." No <code>ETag</code>. No <code>Cache-Control</code>. No conditional <code>If-None-Match</code>.</p>
+<p><strong>Observability.</strong> Every monitoring tool in the HTTP ecosystem understands methods, URLs, and status codes. A dashboard that shows "95th percentile latency for POST /mcp" tells you nothing. A dashboard that shows "95th percentile latency for POST /tools/search/call" tells you which tool is slow. When the URL is always <code>/mcp</code> and the method is always POST, the HTTP layer becomes opaque. You have to parse JSON-RPC envelopes in your logging pipeline to get visibility that REST gives you for free.</p>
+<p><strong>Firewall and gateway granularity.</strong> A WAF rule that allows <code>GET /resources/*</code> and blocks <code>POST /tools/*</code> expresses a security policy in terms the infrastructure understands. A rule that allows <code>POST /mcp</code> with a JSON-RPC body filter does not, because WAFs do not parse JSON-RPC. The same applies to API gateways, service meshes, and rate limiters that operate at the HTTP method and path level.</p>
+<p><strong>CDN and proxy support.</strong> CDNs are built to cache <code>GET</code> responses and pass through <code>POST</code> requests. When a read-only operation like listing available tools is expressed as a <code>POST</code>, CDNs cannot help. Proxies that buffer <code>POST</code> bodies differently than <code>GET</code> responses introduce latency and failure modes that do not exist when the method matches the operation's semantics.</p>
+<h3>The RPC-over-HTTP Trap</h3>
+<p>This is not a new pattern. SOAP routed all operations through a single endpoint, typically <code>/soap</code> or <code>/wsdl</code>, and encoded the operation in the XML body. XML-RPC did the same with a smaller envelope. Both were technically functional. Both were operationally opaque. Both were replaced by REST not because REST was more powerful but because REST was more legible. The infrastructure could see what was happening without being told.</p>
+<p>MCP has reinvented the SOAP pattern with a JSON envelope. The operation is in the body, not in the method or the URL. The endpoint is a tunnel. The HTTP layer is a pipe that carries bytes without understanding them. This is exactly the criticism that the REST community leveled against SOAP twenty years ago, and it is valid for the same reasons.</p>
+<p>The defense of RPC-over-HTTP is that it simplifies the client: one URL, one method, one pattern. This is true. It simplifies the client by offloading complexity to every piece of infrastructure between the client and the server. That tradeoff might be acceptable in a controlled environment where you own every hop. It becomes a liability in any environment where you do not.</p>
+<h3>The Stdio Exception</h3>
+<p>One transport does not suffer from this problem: stdio. On stdio, there are no URLs, no methods, and no intermediaries. JSON-RPC over stdio makes sense because there is no HTTP layer to violate. The method is the message. The envelope is the protocol. Stdio is not REST, and it does not need to be.</p>
+<p>The problem is that MCP's HTTP binding chose to be JSON-RPC over HTTP instead of REST over HTTP. It treated HTTP as a pipe rather than a protocol. The result is a transport that works but that refuses to participate in the ecosystem that makes HTTP valuable in the first place.</p>
+<hr />
+<p>← [[3 - Transport Diversity - Why Only stdio and HTTP|Previous: Transport Diversity — Why Only stdio and HTTP]] | ↑ [[_MoC|Index]] | → [[5 - Content Negotiation as Transport Fork|Next: Content Negotiation as Transport Fork]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-3" class="nav-footer__link">§3 Transport Diversity</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -469,7 +507,7 @@
     <article id="section-5" class="section">
       <span class="section__number">§5</span>
       <h2>5. Content Negotiation as Transport Fork</h2>
-<p>In MCP's original HTTP transport, a client sends a <code>POST</code> to <code>/mcp</code> with <code>Accept: application/json</code> and receives a JSON response body. The same <code>POST</code> to the same URL with <code>Accept: text/event-stream</code> returns an SSE stream. Same endpoint. Same method. Radically different response protocols, selected by a content negotiation header.</p>
+<p>In MCP's original HTTP transport, a client sends a <code>POST</code> to <code>/mcp</code> with <code>Accept: application/json</code> and receives a JSON response body. The same <code>POST</code> to the same URL with <code>Accept: text/event-stream</code> returns an SSE stream. Same endpoint. Same method. Radically different response protocols, selected by a content negotiation header. (The 2025-11-25 Streamable HTTP transport changed this: the client's <code>POST</code> must list both <code>application/json</code> and <code>text/event-stream</code> in <code>Accept</code>, and the server decides which to return. The architectural concern remains; the mechanism shifted from a binary client-side switch to a server-side decision.)</p>
 <p>Content negotiation in HTTP is designed for selecting between representations of the same resource: JSON vs. XML, English vs. French, compressed vs. uncompressed. The resource is the same. The representation varies. <code>Accept: text/event-stream</code> is not asking for a different representation of the same resource. It is asking to switch the entire communication protocol from request-response to streaming server push. The body format changes. The connection semantics change. The client's parsing code changes. The failure handling changes. This is not content negotiation. It is a transport fork disguised as a media type preference.</p>
 <h3>The Dual Code Path Problem</h3>
 <p>Every MCP HTTP client must implement two entirely different response handlers:</p>
@@ -486,12 +524,13 @@
 <p>Corporate proxies, API gateways, and content delivery networks routinely modify or strip <code>Accept</code> headers. A proxy that replaces <code>Accept: text/event-stream</code> with <code>Accept: */*</code> will cause the server to return JSON when the client expected a stream. A load balancer that buffers response bodies will hold SSE events until the stream closes, which may be never, turning a real-time notification channel into a silent timeout.</p>
 <p>These are not hypothetical failures. They are the class of failures that disappear when transport semantics are expressed in the transport rather than in content negotiation headers. An <a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT</a> client does not negotiate whether it wants publish/subscribe semantics via an <code>Accept</code> header. The protocol IS publish/subscribe. A WebSocket client does not negotiate whether it wants bidirectional framing via a content type. The protocol provides it. MCP's use of <code>Accept</code> to select between request-response and streaming server push puts a transport-level decision in a content-level field, and every intermediary that does not understand this specific convention will misinterpret it.</p>
 <h3>What Proper Content Negotiation Looks Like</h3>
-<p>HTTP content negotiation, as defined in <a href="https://www.rfc-editor.org/rfc/rfc7231">RFC 7231</a>, allows a client to express preferences for representations of a resource. <code>Accept: application/json</code> says "I prefer JSON." <code>Accept-Language: en</code> says "I prefer English." The server responds with <code>Content-Type: application/json</code> and <code>Content-Language: en</code>. The resource is the same. The representation varies.</p>
+<p>HTTP content negotiation, as defined in <a href="https://www.rfc-editor.org/rfc/rfc9110">RFC 9110</a>, allows a client to express preferences for representations of a resource. <code>Accept: application/json</code> says "I prefer JSON." <code>Accept-Language: en</code> says "I prefer English." The server responds with <code>Content-Type: application/json</code> and <code>Content-Language: en</code>. The resource is the same. The representation varies.</p>
 <p>MCP's use of <code>Accept</code> violates this contract because the response is not a different representation of the same resource. A JSON-RPC response and an SSE stream are different communication patterns applied to the same logical operation. The JSON response closes the request. The SSE stream keeps it open and pushes additional frames. These are transport behaviors, not content preferences. Encoding them in <code>Accept</code> conflates "what format is this data in" with "what protocol are we speaking," and the conflation makes every intermediate system that correctly implements HTTP content negotiation into a potential source of failure.</p>
 <h3>The Streamable HTTP Update</h3>
 <p>The 2025-11-25 revision of the MCP specification replaces the original HTTP+SSE transport with "Streamable HTTP." SSE is now optional: the server can return <code>application/json</code> directly. A <code>GET</code> to the endpoint opens a standalone SSE stream. A <code>POST</code> can return JSON or SSE depending on whether the server needs to push. The <code>MCP-Protocol-Version</code> header is now required on all requests. Session termination uses an explicit <code>DELETE</code> request.</p>
 <p>This is an improvement. It removes the worst fork: the client no longer has to guess whether a POST will return JSON or SSE based on its <code>Accept</code> header. But the fundamental issue remains: the MCP endpoint is still a single URL that does everything, and the choice between request-response and streaming is still expressed in the response rather than determined by the request's structure. The server decides. The client adapts. The transport semantics are still emergent rather than declared.</p>
 <hr />
+<p>← [[4 - The Single-Endpoint POST-Everything Antipattern|Previous: The Single-Endpoint POST-Everything Antipattern]] | ↑ [[_MoC|Index]] | → [[6 - Status Codes That Lie|Next: Status Codes That Lie]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-4" class="nav-footer__link">§4 The POST-Everything Antipattern</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -554,9 +593,10 @@
 </tr>
 </tbody>
 </table>
-<p>Instead, every response is <code>200 OK</code> or <code>202 Accepted</code> or <code>400 Bad Request</code> (only for transport-level errors like malformed JSON). The JSON-RPC layer carries all the semantic status, and the HTTP layer carries transport status that is almost always "fine."</p>
+<p>Instead, operation-level responses come as <code>200 OK</code> even when they encode failures. The JSON-RPC layer carries all the semantic status, and the HTTP layer carries transport status that is almost always "fine."</p>
 <h3>Everything Looks Like 200</h3>
-<p>The practical consequence: when you look at your APM dashboard, your Datadog metrics, your CloudWatch alarms, or your nginx access logs, every MCP request appears as a successful HTTP transaction. A tool call that returns <code>"code": -32601, "message": "Method not found"</code> is a <code>200 OK</code> at the HTTP layer. A resource read for a non-existent URI is a <code>200 OK</code>. An internal server error that crashes the tool execution is a <code>200 OK</code>.</p>
+<p>The heading overstates slightly. The 2025-11-25 transport assigns <code>202 Accepted</code> for notifications, <code>400 Bad Request</code> for malformed input, <code>403 Forbidden</code> for invalid origins, <code>404 Not Found</code> for expired sessions, and <code>405 Method Not Allowed</code> for unsupported methods. Transport-level failures use HTTP status codes correctly. The problem is that <strong>operation-level</strong> failures, the ones that matter most for debugging, are buried inside JSON-RPC.</p>
+<p>The practical consequence: when you look at your APM dashboard, your Datadog metrics, your CloudWatch alarms, or your nginx access logs, most MCP requests appear as successful HTTP transactions at the operation level. A tool call that returns <code>"code": -32601, "message": "Method not found"</code> is a <code>200 OK</code> at the HTTP layer. A resource read for a non-existent URI is a <code>200 OK</code>. An internal server error that crashes the tool execution is a <code>200 OK</code>.</p>
 <p>Your <code>5xx</code> alert does not fire because the error code is in the body, not in the status line. Your success rate metric reads 100% because every response has a 200 status code. Your error budget is unburned because the budget does not know about errors it cannot see.</p>
 <p>This is the same mistake SOAP made. Every SOAP response is an HTTP 200. The fault is in the XML body. The monitoring infrastructure is blind. The operator has to write custom parsing logic to extract the real status from the envelope. MCP has replicated this pattern with JSON instead of XML, and it has the same operational consequences.</p>
 <h3>The Paradox of 404 for Expired Sessions</h3>
@@ -573,6 +613,7 @@
 <p>A slow request, sure. But all successful. Until someone parses the JSON-RPC body and discovers that the 2340ms request returned <code>-32603 Internal error</code>. The proxy did not know. The load balancer did not know. The rate limiter did not know. The only system that knew was the MCP client, which had to implement its own error tracking from scratch because every piece of infrastructural observability is blind to the actual status of the operation.</p>
 <p>This is not a theoretical concern. It is a daily operational reality for any team running MCP servers in production behind standard HTTP infrastructure. They will build custom JSON-RPC parsing middleware for their monitoring, their alerting, and their dashboards. They will reinvent HTTP status codes, poorly, inside their own telemetry pipeline.</p>
 <hr />
+<p>← [[5 - Content Negotiation as Transport Fork|Previous: Content Negotiation as Transport Fork]] | ↑ [[_MoC|Index]] | → [[7 - Session Management via Custom Header|Next: Session Management via Custom Header]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-5" class="nav-footer__link">§5 Content Negotiation</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -595,7 +636,7 @@
 <h3>How Other Transports Handle Sessions Naturally</h3>
 <p>The stdio transport handles sessions by process lifetime. The client launches the server. The session begins. The process exits. The session ends. No header. No ID. No expiry. The kernel enforces the lifecycle. This is the simplest possible session management, and it works because the transport is the session.</p>
 <p><a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT</a> handles sessions with the <code>Session Present</code> flag in the <code>CONNACK</code> packet. The client connects with <code>cleanSession=false</code>. If the broker has a previous session for that client ID, it sets <code>Session Present=true</code> and resumes. If not, <code>Session Present=false</code> and the session starts fresh. The client does not need a custom header. The broker does not need to invent a session protocol. The transport specification already includes one.</p>
-<p><a href="https://grpc.io/">gRPC</a> handles sessions with <a href="https://www.rfc-editor.org/rfc/rfc9113">HTTP/2</a> streams. Each RPC is a stream. The connection is persistent. Session state is implicit in the stream lifecycle. No custom header required.</p>
+<p><a href="https://grpc.io/">gRPC</a> manages RPC lifecycles with <a href="https://www.rfc-editor.org/rfc/rfc9113">HTTP/2</a> streams. Each RPC is a stream. The connection is persistent. For cross-RPC session state (identity, contexts), you still need application-level metadata, but the transport naturally provides a per-call session boundary. No custom header required.</p>
 <p>WebSocket handles sessions with the persistent connection itself. The connection is the session. Close the connection, close the session.</p>
 <p>Every transport MCP could use already has a native session mechanism. The HTTP binding chose to invent one that works against, not with, the HTTP infrastructure it runs on.</p>
 <h3>The Streamable HTTP Improvement</h3>
@@ -606,11 +647,12 @@
 <li><strong>HTTP:</strong> <code>Cookie</code> or <code>Authorization</code> header for session identity. Standard session patterns. Every proxy understands.</li>
 <li><strong>MQTT:</strong> <code>Session Present</code> flag. Client ID is the session identifier. Every broker understands.</li>
 <li><strong>stdio:</strong> Process lifetime. No header, no ID. The transport is the session.</li>
-<li><strong>gRPC:</strong> HTTP/2 stream lifecycle. No custom mechanism needed.</li>
+<li><strong>gRPC:</strong> HTTP/2 stream lifecycle per RPC. Cross-RPC sessions need application-level metadata.</li>
 <li><strong>WebSocket:</strong> Connection lifetime. Persistent by definition.</li>
 </ul>
 <p>Same protocol semantics. Different transport expressions. No custom headers. No reinvention tax. No proxy-stripping surprises.</p>
 <hr />
+<p>← [[6 - Status Codes That Lie|Previous: Status Codes That Lie]] | ↑ [[_MoC|Index]] | → [[8 - The SSE Stream Architecture - Clever but Fragile|Next: The SSE Stream Architecture — Clever but Fragile]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-6" class="nav-footer__link">§6 Status Codes That Lie</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -626,19 +668,19 @@
 <p>The original MCP HTTP transport used <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events</a> (SSE) for server-to-client communication. A client <code>GET</code>s an SSE stream to receive server-initiated messages. A client <code>POST</code>s <a href="https://www.jsonrpc.org/specification">JSON-RPC</a> to send requests, and may receive an SSE response stream instead of a JSON body. Multiple SSE streams can be open simultaneously. Each SSE event carries an ID for resumption after disconnection.</p>
 <p>This is clever. SSE is a well-understood technology with broad browser support and simple parsing rules. Using SSE to bridge the request-response gap over HTTP is the kind of creative engineering that looks elegant in a demo. In production, it is fragile in ways that compound.</p>
 <h3>The HTTP/1.1 Connection Limit</h3>
-<p>Most browsers limit HTTP/1.1 to six concurrent connections per origin (a browser implementation choice, not a protocol limit; <a href="https://www.rfc-editor.org/rfc/rfc7230">RFC 7230</a> recommends 2, but browsers converged on 6). Each SSE stream is a long-lived connection. A client with two active MCP servers is using two persistent connections for SSE, plus a third for any POST. Add a third server and a fourth for notifications, and the connection pool is nearly exhausted before any normal HTTP traffic.</p>
+<p>Most browsers limit HTTP/1.1 to six concurrent connections per origin (a browser implementation choice, not a protocol limit; <a href="https://www.rfc-editor.org/rfc/rfc9110">RFC 9110</a> recommends 2, but browsers converged on 6). Each SSE stream is a long-lived connection. A client with two active MCP servers is using two persistent connections for SSE, plus a third for any POST. Add a third server and a fourth for notifications, and the connection pool is nearly exhausted before any normal HTTP traffic.</p>
 <p>This is not a theoretical limit. It is a practical constraint that affects every HTTP/1.1 client, which is most of them. MCP does not require <a href="https://www.rfc-editor.org/rfc/rfc9113">HTTP/2</a>, and many deployment environments do not support it. The spec is optimized for a protocol feature (SSE) that works against the transport constraint (connection limits) that most clients will encounter.</p>
 <h3>Proxy Buffering and Timeout Mismatches</h3>
 <p>Corporate proxies and load balancers are trained by two decades of HTTP traffic to treat long-lived connections as problems. A proxy that buffers the response body will hold SSE frames until the stream closes, which in MCP's case may be never, turning real-time notifications into a silent void. A proxy with a 30-second idle timeout will kill SSE streams that pause for 31 seconds between events. A CDN with caching rules will not cache SSE responses (correctly), but it may refuse to pass them through without custom configuration.</p>
 <p>These are the same class of problems that afflicted early WebSocket deployments, except WebSocket has a well-defined handshake (<code>Upgrade</code> header) that tells every intermediary "this is not a normal HTTP response." SSE has no such signal. It looks like a normal HTTP response that happens to be very long, and intermediaries treat it accordingly.</p>
 <h3>Disconnection Is Not Cancellation</h3>
 <p>When an SSE stream disconnects, the MCP server does not know whether the client intended to cancel the request or simply lost connectivity. The spec requires an explicit <code>CancelledNotification</code> to cancel a request. A disconnected client cannot send one. A client that reconnects with <code>Last-Event-ID</code> may find that the server has continued processing an expensive operation it no longer needs.</p>
-<p>This is a real operational problem. A tool call that spawns a subprocess, queries a database, or calls an external API will continue consuming resources after the client's connection drops. The server has no way to distinguish "the client went away" from "the client is reconnecting." The timeout is implementation-defined, not protocol-specified. There is no standard mechanism for the server to ask "are you still there?" without the client being connected.</p>
+<p>This is a real operational problem. A tool call that spawns a subprocess, queries a database, or calls an external API will continue consuming resources after the client's connection drops. The server has no way to distinguish "the client went away" from "the client is reconnecting." The timeout is implementation-defined, not protocol-specified. MCP's <code>ping</code> utility allows a connected client to check liveness, but there is no standard mechanism for the server to ask "are you still there?" when the client is disconnected, leaving SSE disconnection, server death, and intentional closure operationally ambiguous.</p>
 <h3>SSE Resumption as a Custom Cursor Protocol</h3>
 <p>MCP's SSE resumption uses per-event IDs and the <code>Last-Event-ID</code> header to resume streams after disconnection. This is a custom cursor protocol layered on top of SSE, which is itself layered on top of HTTP. The cursor is opaque to every intermediary. A proxy that buffers responses drops the cursor. A load balancer that fails over to a different server instance has no way to share cursor state unless the application implements it.</p>
 <p>HTTP already has a mechanism for resuming interrupted transfers: <code>Range</code> requests and <code>If-Range</code> headers. These are understood by every proxy, CDN, and load balancer in the ecosystem. MCP's <code>Last-Event-ID</code> is a custom rebuild of the same concept, but opaque to the infrastructure that would need to support it.</p>
 <h3>What a Transport-Agnostic Approach Would Do</h3>
-<p>WebSocket does not have any of these problems because it was designed for persistent, bidirectional communication. A WebSocket connection is explicitly upgraded from HTTP. Proxies know not to buffer it. The connection is multiplexed. A single connection carries many message types. Disconnection is disconnection. The framing is built into the protocol.</p>
+<p>WebSocket does not have any of these problems because it was designed for persistent, bidirectional communication. A WebSocket connection is explicitly upgraded from HTTP. Proxies know not to buffer it. The connection is persistent and bidirectional. A single connection carries many message types, though multiplexing of independent logical streams requires a subprotocol. Disconnection is disconnection. The framing is built into the protocol.</p>
 <p><a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT</a> does not have these problems because publish/subscribe is its native communication pattern. A client subscribes. The broker delivers messages. Disconnection triggers the will mechanism. Session state is maintained by the broker with the <code>Session Present</code> flag.</p>
 <p>STDIO does not have these problems because process lifetime is connection lifetime.</p>
 <p>Each transport has a native way to solve the problems MCP solved with SSE. The SSE layer exists because HTTP, alone among MCP's transports, does not have a native server-push mechanism. Rather than treating this as a signal that HTTP might not be the right transport for server-push communication, MCP built a custom protocol on top of SSE on top of HTTP, adding layers of indirection that duplicate features other transports provide natively.</p>
@@ -646,6 +688,7 @@
 <p>The 2025-11-25 revision addresses the worst of these problems by making SSE optional. A POST can now return <code>application/json</code> directly for simple request-response interactions. SSE streams are only opened when the server needs to push data. This fixes the "every response is an SSE stream" problem and reduces connection consumption.</p>
 <p>But SSE resumption, proxy buffering, disconnection semantics, and the custom cursor protocol remain. The underlying fragility is reduced, not eliminated. The server still decides whether a response is JSON or SSE, not the client's request structure. The transport semantics are still emergent rather than declared. The fundamental critique holds: MCP has built a custom streaming protocol on top of HTTP because HTTP alone cannot do what the application needs, when other transports can do it natively.</p>
 <hr />
+<p>← [[7 - Session Management via Custom Header|Previous: Session Management via Custom Header]] | ↑ [[_MoC|Index]] | → [[9 - Batch Without Boundaries|Next: Batch Without Boundaries]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-7" class="nav-footer__link">§7 Session Management</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -658,7 +701,7 @@
     <article id="section-9" class="section">
       <span class="section__number">§9</span>
       <h2>9. Batch Without Boundaries</h2>
-<p><a href="https://www.jsonrpc.org/specification">JSON-RPC 2.0</a> supports batch requests: an array of request objects sent in a single POST body. MCP inherits this. The server can respond with a batch of responses, also in a single body. This is efficient on the wire. It is also dangerous in practice, because the spec imposes no constraints on batch size, no ordering guarantees, and no partial failure semantics.</p>
+<p><a href="https://www.jsonrpc.org/specification">JSON-RPC 2.0</a> supports batch requests: an array of request objects sent in a single POST body. JSON-RPC defines this; earlier MCP revisions permitted it. The current 2025-11-25 Streamable HTTP transport narrows the POST body to a single JSON-RPC message, so this critique applies to the JSON-RPC specification itself and to implementations that accept batches, not to the latest HTTP binding. The server can still respond with a batch of responses. This is efficient on the wire. It is also dangerous in practice, because the spec imposes no constraints on batch size, no ordering guarantees, and no partial failure semantics.</p>
 <h3>The Partial Failure Problem</h3>
 <p>Consider a batch of ten requests sent in a single POST:</p>
 <div class="highlight"><pre><span></span><code><span class="p">[</span><span class="w"></span>
@@ -692,6 +735,7 @@
 </ul>
 <p>None of these are novel. Message queue protocols, database batch APIs, and distributed task systems all solve these problems. MCP's batching inherits JSON-RPC 2.0's minimal semantics and adds nothing. The result is a feature that works for the happy path and is undefined for every failure mode.</p>
 <hr />
+<p>← [[8 - The SSE Stream Architecture - Clever but Fragile|Previous: The SSE Stream Architecture — Clever but Fragile]] | ↑ [[_MoC|Index]] | → [[10 - A Transport-Agnostic Alternative - Designing the Protocol First, Binding Later|Next: A Transport-Agnostic Alternative — Designing the Protocol First, Binding Later]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-8" class="nav-footer__link">§8 SSE Architecture</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -813,8 +857,8 @@
 <td>Tool list fetch, resource read</td>
 </tr>
 <tr>
-<td>Exactly-once</td>
-<td>Retry with deduplication.</td>
+<td>Exactly-once (transport)</td>
+<td>Retry with protocol-level deduplication. Application-level exactly-once still requires idempotency keys.</td>
 <td>Tool invocation with side effects (send email, debit account)</td>
 </tr>
 </tbody>
@@ -864,7 +908,7 @@ Services:
 <ul>
 <li><strong>HTTP</strong>: <code>X-Request-ID</code> and <code>traceparent</code>/<code>tracestate</code> headers. Standard W3C propagation.</li>
 <li><strong>MQTT 5</strong>: User properties on the <code>CONNECT</code> and <code>PUBLISH</code> packets. MQTT 5's <code>Correlation Data</code> field handles request-response correlation; user properties carry <code>traceparent</code> and <code>tracestate</code>.</li>
-<li><strong><a href="https://nats.io/">NATS</a></strong>: Headers in the message envelope (NATS supports headers natively). <code>Nats-Msg-Id</code> for correlation, custom headers for trace context.</li>
+<li><strong><a href="https://nats.io/">NATS</a></strong>: Headers in the message envelope (NATS supports headers natively). Reply subjects for correlation (NATS request-reply pattern), custom headers for trace context.</li>
 <li><strong><a href="https://grpc.io/">gRPC</a></strong>: Metadata keys on the gRPC call. <a href="https://opentelemetry.io/">OpenTelemetry</a>'s gRPC propagation handles <code>traceparent</code> natively.</li>
 <li><strong>WebSocket</strong>: First message or subprotocol negotiation carries the correlation ID and trace context.</li>
 <li><strong><a href="https://zeromq.org/">ZeroMQ</a></strong>: A property-delimited prefix frame or a <code>ZAP</code>-style metadata frame attached to the first message in a conversation.</li>
@@ -1119,8 +1163,8 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 </tr>
 </tbody>
 </table>
-<p>A <code>tools/call</code> that debits an account publishes with QoS 2. A progress notification publishes with QoS 0. The broker handles retry and deduplication; the protocol doesn't reinvent it.</p>
-<p><strong>Retained messages</strong> — The server publishes its tool catalog to <code>mcp/{session-id}/tools/list</code> with the retain flag. Any client that subscribes to that topic immediately receives the last published catalog. No <code>initialize</code> handshake needed for capability discovery: it's always available.</p>
+<p>A <code>tools/call</code> that debits an account publishes with QoS 2 for transport-level exactly-once delivery (the application must still provide idempotency keys or deduplication for business-level guarantees). A progress notification publishes with QoS 0. The broker handles retry and deduplication; the protocol doesn't reinvent it.</p>
+<p><strong>Retained messages</strong> — The server publishes its tool catalog to <code>mcp/{session-id}/tools/list</code> with the retain flag. Any client that subscribes to that topic immediately receives the last published catalog. Capability discovery is always available without a round-trip initialize, though protocol version and client capability negotiation would still need a handshake.</p>
 <p><strong>Last Will</strong> — On <code>connect</code>, the server sets a Last Will message on <code>mcp/{session-id}/status</code> with payload <code>"offline"</code>. If the server disconnects ungracefully, the broker publishes this message. The client gets unambiguous server-death detection: no ambiguity between "SSE stream ended" and "server crashed."</p>
 <p><strong>Multiple transports simultaneously</strong> — A server can expose the same protocol over HTTP and MQTT. A web-based client uses HTTP. An IoT sensor uses MQTT. Both talk to the same protocol core. The server implements the core once; transport bindings are adapters.</p>
 <h3>10.7 stdio Binding — Process-Native Semantics</h3>
@@ -1155,7 +1199,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 
 <p><strong>Streaming</strong> — Each <code>call</code>/<code>invoke</code>/<code>subscribe</code> RPC returns a server stream. gRPC's native streaming replaces SSE without the fragility.</p>
 <p><strong>QoS</strong> — gRPC deadlines and retries handle exactly-once and at-least-once semantics natively.</p>
-<p><strong>Sessions</strong> — gRPC metadata carries session identity. Channel connectivity state (idle, connecting, ready, transient-failure, shutdown) maps directly to session state.</p>
+<p><strong>Sessions</strong> — gRPC metadata carries session identity. Channel connectivity state (idle, connecting, ready, transient-failure, shutdown) provides per-RPC lifecycle signals, but cross-RPC session state requires application-level context propagation.</p>
 <h3>10.9 WebSocket Binding — Persistent Bidirectional Channels</h3>
 <p>WebSocket provides persistent, bidirectional communication over a single TCP connection, upgraded from HTTP. The binding uses this natively.</p>
 <p><strong>Connect</strong> — Client opens <code>ws://server/mcp</code> (or <code>wss://</code>). The HTTP upgrade request carries the <code>InitializeRequest</code> as a query parameter or the first message on the opened socket.</p>
@@ -1189,7 +1233,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 </code></pre></div>
 
 <p><strong>Request-reply</strong> — NATS' built-in request-reply pattern maps directly to MCP's request-response semantics. No correlation IDs or reply subjects to manage: the protocol handles it.</p>
-<p><strong>JetStream for durability</strong> — MCP invocations that charge money or side-effect the world use JetStream streams for exactly-once delivery and replay. Progress notifications use core NATS for best-effort delivery.</p>
+<p><strong>JetStream for durability</strong> — MCP invocations that charge money or side-effect the world use JetStream streams for durable delivery with deduplication and replay. Progress notifications use core NATS for best-effort delivery.</p>
 <p><strong>Wildcard subscriptions</strong> — A client subscribes to <code>mcp.{session-id}.tools.&gt;</code> and receives every tool event. No separate notification channel, no SSE endpoint.</p>
 <h3>10.11 ZeroMQ Binding — Pattern-Native Semantics</h3>
 <p>ZeroMQ's socket types map directly to MCP's communication modes. The binding uses each socket pattern for what it's designed for.</p>
@@ -1210,7 +1254,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <p><strong>Send</strong> — The producer writes a frame into the ring buffer at the write cursor. A frame is: <code>[length][message-type][json-bytes]</code>. A memory barrier (or the ring buffer's sequence counter) signals the consumer.</p>
 <p><strong>Receive</strong> — The consumer reads frames from the read cursor. The same barrier/sequence ensures the consumer only sees committed frames. No polling needed on modern hardware: the consumer can use <code>futex_wait</code> or <code>WaitOnAddress</code> to sleep until signaled.</p>
 <p><strong>Close</strong> — Unmap the shared region. Session terminates.</p>
-<p><strong>Capabilities</strong> — Shared memory is: reliable (same machine, no network), ordered (sequential writes), zero-copy (no serialization for binary schemas), and sub-microsecond (no syscall per message). Caching is irrelevant (the data is already local). Streaming is built-in (the ring buffer is the stream).</p>
+<p><strong>Capabilities</strong> — Shared memory is: reliable (same machine, no network), ordered (sequential writes), zero-copy with binary schemas (no JSON serialization with FlatBuffers/Cap'n Proto), and sub-microsecond latency in optimized designs (can avoid syscalls on the hot path). Caching is irrelevant (the data is already local). Streaming is built-in (the ring buffer is the stream).</p>
 <p><strong>Schema flexibility</strong> — The ring buffer can carry JSON-RPC frames (for simplicity) or binary frames using <a href="https://flatbuffers.dev/">FlatBuffers</a>/<a href="https://capnproto.org/">Cap'n Proto</a> (for zero-copy deserialization). The binding chooses at capability negotiation time.</p>
 <h3>10.13 The Composite Table — Eight Transports, Eight Concerns</h3>
 <table>
@@ -1320,6 +1364,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 </table>
 <p>The table makes the point: no single transport covers all concerns. The protocol core is what stays constant; the binding adapts. A protocol that only defines two transports has blind spots the size of MQTT, gRPC, and shared memory.</p>
 <hr />
+<p>← [[9 - Batch Without Boundaries|Previous: Batch Without Boundaries]] | ↑ [[_MoC|Index]] | → [[11 - What MCP Gets Right (Revisited)|Next: What MCP Gets Right (Revisited)]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-9" class="nav-footer__link">§9 Batch Without Boundaries</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1346,6 +1391,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <h3>The Stakes</h3>
 <p>The real world has <a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT</a> sensors, <a href="https://grpc.io/">gRPC</a> microservices, WebSocket browsers, <a href="https://nats.io/">NATS</a> event streams, <a href="https://zeromq.org/">ZeroMQ</a> local meshes, and shared-memory local tools. MCP's protocol semantics could serve all of these environments. Its transport binding currently serves two. The gap is not theoretical. It is the distance between "a protocol that works for local tools and network servers" and "a protocol that works everywhere tools and context are needed."</p>
 <hr />
+<p>← [[10 - A Transport-Agnostic Alternative - Designing the Protocol First, Binding Later|Previous: A Transport-Agnostic Alternative — Designing the Protocol First, Binding Later]] | ↑ [[_MoC|Index]] | → [[12 - <a href="https://www.poetryfoundation.org/poems/44272/the-road-not-taken">The Road Not Taken</a>|Next: The Road Not Taken]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-10" class="nav-footer__link">§10 A Transport-Agnostic Alternative</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1365,6 +1411,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <p>The practical path forward is not to replace MCP. It is to refactor it. The protocol semantics (tools, resources, capabilities, initialization) are sound. The transport bindings are where the coupling hurts. A specification effort that extracted the protocol core from the HTTP binding, defined the abstract operations and their QoS requirements, and then wrote a new HTTP binding that used RESTful semantics, a MQTT binding that used publish/subscribe, a gRPC binding that used protobuf and streaming, and so on, would be an incremental improvement that preserves everything MCP got right and fixes everything it got wrong.</p>
 <p>This is the road not taken. It is still there. And the signal that it is worth taking is precisely the adoption that MCP has already achieved. A protocol that nobody uses cannot be improved. A protocol that millions of developers depend on can be. The opportunity to make MCP transport-agnostic exists because MCP succeeded. The road not taken is open because the road that was taken proved the destination was worth reaching.</p>
 <hr />
+<p>← [[11 - What MCP Gets Right (Revisited)|Previous: What MCP Gets Right (Revisited)]] | ↑ [[_MoC|Index]] | → [[Addendum - The Missing Middle — Actor Orchestration Above MCP and <a href="https://github.com/a2aproject/A2A">A2A</a>|Next: Addendum — The Missing Middle]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-11" class="nav-footer__link">§11 What MCP Gets Right (Revisited)</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1436,6 +1483,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <p>This addendum argues that the orchestration layer above it should be actor-model-based for the same reason. The message is the unit of work. Where it executes is a routing decision. How it is supervised is a supervision tree decision. What trust it carries is an inheritance decision. None of these are transport concerns. None of them are protocol concerns. They are orchestration concerns, and the actor model addresses them by construction rather than by convention.</p>
 <p>The two arguments reinforce each other. Transport-agnostic protocol means the message format does not change when the transport changes. Actor orchestration means the routing and supervision do not change when the execution location changes. Together, they push all the variability down (transport bindings) and all the control up (supervision and trust), leaving the protocol core in the middle, clean and stable, doing what protocols should do: defining what the messages mean, not how they get there or who handles them.</p>
 <hr />
+<p>← [[12 - <a href="https://www.poetryfoundation.org/poems/44272/the-road-not-taken">The Road Not Taken</a>|Previous: The Road Not Taken]] | ↑ [[_MoC|Index]] | → [[Appendix - Sources and References|Next: Appendix — Sources and References]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#section-12" class="nav-footer__link">§12 The Road Not Taken</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1480,13 +1528,13 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 <td>§3, §10</td>
 </tr>
 <tr>
-<td>RFC 7230 — HTTP/1.1 Message Syntax and Routing</td>
-<td>https://www.rfc-editor.org/rfc/rfc7230</td>
+<td>HTTP Semantics (RFC 9110)</td>
+<td>https://www.rfc-editor.org/rfc/rfc9110</td>
 <td>§5, §8</td>
 </tr>
 <tr>
-<td>RFC 7231 — HTTP Semantics and Content Negotiation</td>
-<td>https://www.rfc-editor.org/rfc/rfc7231</td>
+<td>HTTP Caching (RFC 9111)</td>
+<td>https://www.rfc-editor.org/rfc/rfc9111</td>
 <td>§5</td>
 </tr>
 <tr>
@@ -1810,6 +1858,7 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
 </tbody>
 </table>
 <hr />
+<p>← [[Addendum - The Missing Middle — Actor Orchestration Above MCP and A2A|Previous: Addendum]] | ↑ [[_MoC|Index]]</p>
       <nav class="nav-footer">
 <div class="nav-footer__prev"><span class="nav-footer__label">Previous</span><a href="#addendum" class="nav-footer__link">§add The Missing Middle</a></div>
 <a href="#top" class="nav-footer__index">Index</a>
@@ -1824,12 +1873,11 @@ data: {&quot;method&quot;: &quot;notifications/progress&quot;, &quot;params&quot
   <!-- Footer -->
   <footer class="essay-footer">
     <p class="essay-footer__text">
-      <a href="https://ethersolutions.ca/">Ether Solutions</a> · 
       <a href="#top">Back to top</a> · 
       <a href="#appendix">Sources &amp; References</a>
     </p>
     <p class="essay-footer__copyright">
-      &copy; 2025 Ether Solutions. All rights reserved.
+      &copy; 2025. All rights reserved.
     </p>
   </footer>
 
