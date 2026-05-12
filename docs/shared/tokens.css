@@ -109,8 +109,8 @@
   --space-10:          8rem;      /* 128px */
 
   /* Section rhythm */
-  --section-pad-top:   var(--space-7);    /* 48px above each section */
-  --section-pad-bot:   var(--space-5);    /* 24px below each section */
+  --section-pad-top:   var(--space-9);    /* 96px above each section */
+  --section-pad-bot:   var(--space-7);    /* 48px below each section */
 
   /* Content width */
   --content-width:     42rem;     /* 672px. Narrow for long-form. ~65-70cpl at 18px. */
